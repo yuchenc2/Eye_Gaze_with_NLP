@@ -1,0 +1,21 @@
+# pack-refs with: peeled fully-peeled sorted 
+0703e08a5f589f7503a3fbfce41309c80204eec8 refs/remotes/origin/main
+214a48a7a88470afe6ef34449ef3be122d2fc72e refs/remotes/origin/ppwwyyxx-patch-1
+c1e082d62fd0315077f9ac3ca76049a927a0c7aa refs/remotes/origin/ppwwyyxx-patch-2
+a885bb734b9927d35ffc75ba6b2047cf71c955b7 refs/remotes/origin/ppwwyyxx-patch-3
+b391be5db74afca774ec2fd0021eda8a2dc8c7c5 refs/remotes/origin/ppwwyyxx-patch-4
+1f7fa2c9a0cc85f6b938303dbbd794087e314552 refs/remotes/origin/test-ci
+f89e39ab8220a2981157f5060b5c73058c163516 refs/remotes/origin/tmp
+6dfe0e56b5803dce2f4033b7aac9e1ed21f2737e refs/remotes/origin/yuxin
+a03262181a7019c4775c87214f5b9256a262d926 refs/remotes/origin/yuxinwu
+1a7daee064eeca2d7fddce4ba74b74183ba1d4a0 refs/tags/v0.1
+401fd04cecec16f1ed0452eb936502d5d33a23be refs/tags/v0.1.1
+60205f80f300a7000373ea2dd6ff73574bf16978 refs/tags/v0.1.2
+bd2ea475b693a88c063e05865d13954d50242857 refs/tags/v0.1.3
+a33fc5371625f8b5f46a3aa0e1548ec6e1c38128 refs/tags/v0.2
+be792b959bca9af0aacfa04799537856c7a92802 refs/tags/v0.2.1
+4841e70ee48da72c32304f9ebf98138c2a70048d refs/tags/v0.3
+4aca4bdaa9ad48b8e91d7520e0d0815bb8ca0fb1 refs/tags/v0.4
+60fd4885d7cfd52d4267d1da9ebb6b2b9a3fc937 refs/tags/v0.4.1
+82a57ce0b70057685962b352535147d9a8118578 refs/tags/v0.5
+d1e04565d3bec8719335b88be9e9b961bf3ec464 refs/tags/v0.6
