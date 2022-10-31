@@ -19,15 +19,33 @@ class Detector:
             self.cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))
             self.cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")
         
-        self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7
+        self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.9
         self.cfg.MODEL.DEVICE = "cpu"
 
         self.predictor = DefaultPredictor(self.cfg)
+        self.image_height = 0
+        self.image_width = 0
+        self.image_channels = 0
 
     def onImage(self, imagePath):
         image = cv2.imread(imagePath)
+
+        # Predict and show bounding boxes
         predictions = self.predictor(image)
-        viz = Visualizer(image[:, :, ::-1], metadata=MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0]), instance_mode = ColorMode.IMAGE_BW)
+        metadata=MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0])
+        viz = Visualizer(image[:, :, ::-1], metadata, instance_mode = ColorMode.IMAGE_BW)
         output = viz.draw_instance_predictions(predictions["instances"].to("cpu"))
-        cv2.imshow("Result", output.get_image()[:, :, ::-1])
-        cv2.waitKey(0)
+        class_catalog = metadata.thing_classes
+        
+        classes = [class_catalog[i] for i in predictions['instances'].pred_classes.numpy()]
+        # print("class: ", classes)
+        # print("box: ", predictions['instances'].pred_boxes)
+        output_boxes = predictions['instances'].pred_boxes.tensor.numpy()
+        # print(output_boxes)
+        # print("mask: ", predictions['instances'].pred_masks)
+
+        # Show the window in full screen
+        self.image_height, self.image_width, self.image_channels = image.shape
+        print("Image_h: " + str(self.image_height) + ", Image_w: " + str(self.image_width))
+        return predictions, output, output_boxes, classes
+        
