@@ -38,14 +38,22 @@ class ASR:
         outputs = self.tokenizer.decode(predicted_ids, output_word_offsets = True)
         # Split words and get start/end times
         time_offset = self.model.config.inputs_to_logits_ratio / self.feature_extractor.sampling_rate
-        word_offsets = [
-            {
-                "word": d["word"],
-                "start_time": round(d["start_offset"] * time_offset, 2),
-                "end_time": round(d["end_offset"] * time_offset, 2),
-            }
-            for d in outputs.word_offsets
-        ]
-        return word_offsets
+        word_offsets = {}
+        word_list = []
+        word_index = 0
+        for d in outputs.word_offsets:
+            if d["word"] in word_offsets:
+                word_offsets[d["word"]][word_index] = {
+                    "start_time": round(d["start_offset"] * time_offset, 2),
+                    "end_time": round(d["end_offset"] * time_offset, 2)
+                }
+            else:
+                word_offsets[d["word"]] = {word_index: {
+                    "start_time": round(d["start_offset"] * time_offset, 2),
+                    "end_time": round(d["end_offset"] * time_offset, 2)
+                }}
+            word_index += 1
+            word_list.append(d["word"])
+        return word_list, word_offsets
 
 
