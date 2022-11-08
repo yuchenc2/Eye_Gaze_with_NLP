@@ -4,8 +4,9 @@ import struct
 import numpy as np
 import time
 
+
 class Recorder:
-    def __init__(self, chunk = 1024, silence_threshold = 150, silence_timeout = 2, channels = 2, fs = 16000, swidth = 2):
+    def __init__(self, chunk=1024, silence_threshold=150, silence_timeout=2, channels=2, fs=16000, swidth=2):
         # Record in chunks of 1024 samples
         self.chunk = chunk
         self.silence_threshold = silence_threshold
@@ -25,19 +26,23 @@ class Recorder:
             frames_per_buffer=self.chunk,
             input=True
         )
+        self.talking = False
+        self.finished_rec = False
 
     def rms(self, frame):
         count = len(frame) / self.swidth
         format = "%dh" % (count)
         shorts = struct.unpack(format, frame)
         # Normalize the frame data by 1/2^15 = 1/32768 since the format is int16
-        sum_squares = np.sum(np.power(np.array(shorts), 2)) * 1/32768 ** 2
+        sum_squares = np.sum(np.power(np.int64(shorts), 2)) * 1/32768 ** 2
         rms = np.power(sum_squares / count, 0.5)
         return rms * 1000
 
     def record_until_silence(self):
-        frames = []  # Initialize array to store frames
-        print('Recording')
+        # Initialize array to store frames
+        frames = []
+        print("Recording starts first instance of noise")
+        self.finished_rec = False
         end = time.time() + self.silence_timeout
         # Store data in chunks
         while time.time() < end:
@@ -45,18 +50,27 @@ class Recorder:
             # Extend recording time if the rms is above the threshold
             if self.rms(data) > self.silence_threshold:
                 end = time.time() + self.silence_timeout
-            frames.append(data)
+                if not self.talking:
+                    print("Talking detected, recording started")
+                    self.talking = True
+            elif not self.talking:
+                end = time.time() + self.silence_timeout
+            if self.talking:
+                frames.append(data)
+        print("Ending recording")
+        self.talking = False
         return frames
 
     def stop_recording(self):
-        # Stop and close the stream 
+        # Stop and close the stream
         self.stream.stop_stream()
         self.stream.close()
         # Terminate the PortAudio interface
         self.p.terminate()
-        print('Finished recording')
+        self.finished_rec = True
+        print('Finished recording at ', time.time(), ' seconds')
 
-    def save_recording(self, frames, filename = "output.wav"):
+    def save_recording(self, frames, filename="output.wav"):
         # Save the recorded data as a WAV file
         wf = wave.open(filename, 'wb')
         wf.setnchannels(self.channels)

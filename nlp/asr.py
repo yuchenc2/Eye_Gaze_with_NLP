@@ -4,6 +4,7 @@ from transformers import AutoTokenizer, AutoFeatureExtractor, AutoModelForCTC
 import torch
 # from jiwer import wer
 
+
 class ASR:
     def __init__(self, sampling_rate = 16000):
         self.model = AutoModelForCTC.from_pretrained("facebook/wav2vec2-base-960h")
@@ -55,5 +56,4 @@ class ASR:
             word_index += 1
             word_list.append(d["word"])
         return word_list, word_offsets
-
 

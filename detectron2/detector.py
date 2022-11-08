@@ -3,9 +3,8 @@ from detectron2.config import get_cfg
 from detectron2.data import MetadataCatalog
 from detectron2.utils.visualizer import ColorMode, Visualizer
 from detectron2 import model_zoo
-
 import cv2
-import numpy as np
+
 
 class Detector:
     def __init__(self, model_type = "OD"):
@@ -48,4 +47,4 @@ class Detector:
         self.image_height, self.image_width, self.image_channels = image.shape
         print("Image_h: " + str(self.image_height) + ", Image_w: " + str(self.image_width))
         return predictions, output, output_boxes, classes
-        
+
