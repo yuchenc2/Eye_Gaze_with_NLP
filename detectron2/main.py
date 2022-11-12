@@ -1,5 +1,8 @@
+from tkinter.messagebox import NO
 from detector import *
 from GazepointAPI import *
+from shapely.geometry import Point
+from shapely.geometry.polygon import Polygon
 import cv2
 
 # set image quality
@@ -34,8 +37,7 @@ cam.release()
 
 # Detect item in image
 detector = Detector(model_type="IS")
-predictions, output, output_boxes, class_names = detector.onImage("captured.png")
-labeled_image = output.get_image()[:, :, ::-1]
+output_image, output_boxes, class_names, output_masks = detector.onImage("captured.png")
 
 # Capture the eye gaze
 gaze = Gaze()
@@ -50,23 +52,40 @@ instance_fixation_counts = np.zeros(output_boxes.shape[0])
 
 # Check if eye gaze is in any instance
 while (gaze.time - init_time < 10): # run for 10 seconds
-    cv2.imshow("Image_Input", labeled_image)
+    if output_masks is None:
+        print("No instance detected")
+        break
+    cv2.imshow("Image_Input", output_image)
     cv2.waitKey(1)
     if gaze.eye_gaze_capture(): # if it's a fixation
         if gaze.FPOGX and gaze.FPOGY: # if list is not empty
             eye_gaze_x = int(gaze.FPOGX[-1]*detector.image_width) 
             eye_gaze_y = int(gaze.FPOGY[-1]*detector.image_height)
+
+            # Check if within instances' masks
+            point = Point(eye_gaze_x, eye_gaze_y)
+            for i in range(output_boxes.shape[0]):
+                for segment in output_masks[i].polygons:
+                    segment = segment.reshape(-1, 2)
+                    polygon = Polygon(segment)
+                    if polygon.contains(point):
+                        instance_weights[i] += gaze.FPOGD[-1]
+                        instance_fixation_counts[i] += 1
+                        output_image = cv2.circle(output_image.astype(np.uint8), (eye_gaze_x, eye_gaze_y), radius=2, color=(0, 0, 255), thickness=-1)
+
+
+            # Check if within instances' bounding boxes
             # output_boxes = [[x1, y1, x2, y2], ...]
-            for i in range(output_boxes.shape[0]): # check if gaze is in box
-                # Note top left of screen is (0, 0)
-                left_x = output_boxes[i][0]
-                top_y = output_boxes[i][1]
-                right_x = output_boxes[i][2]
-                bottom_y = output_boxes[i][3]
-                if eye_gaze_x > left_x and eye_gaze_x < right_x and eye_gaze_y < bottom_y and eye_gaze_y > top_y:
-                    instance_weights[i] += gaze.FPOGD[-1]
-                    instance_fixation_counts[i] += 1
-                    labeled_image = cv2.circle(labeled_image.astype(np.uint8), (eye_gaze_x, eye_gaze_y), radius=2, color=(0, 0, 255), thickness=-1)
+            # for i in range(output_boxes.shape[0]): # check if gaze is in box
+            #     # Note top left of screen is (0, 0)
+            #     left_x = output_boxes[i][0]
+            #     top_y = output_boxes[i][1]
+            #     right_x = output_boxes[i][2]
+            #     bottom_y = output_boxes[i][3]
+            #     if eye_gaze_x > left_x and eye_gaze_x < right_x and eye_gaze_y < bottom_y and eye_gaze_y > top_y:
+            #         instance_weights[i] += gaze.FPOGD[-1]
+            #         instance_fixation_counts[i] += 1
+            #         output_image = cv2.circle(output_image.astype(np.uint8), (eye_gaze_x, eye_gaze_y), radius=2, color=(0, 0, 255), thickness=-1)
 
 print("Instances in the image:")
 print(class_names)
