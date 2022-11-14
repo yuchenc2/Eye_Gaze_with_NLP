@@ -6,7 +6,7 @@ import time
 
 
 class Recorder:
-    def __init__(self, chunk=1024, silence_threshold=150, silence_timeout=2, channels=2, fs=16000, swidth=2):
+    def __init__(self, chunk=1024, silence_threshold=50, silence_timeout=3, channels=2, fs=16000, swidth=2):
         # Record in chunks of 1024 samples
         self.chunk = chunk
         self.silence_threshold = silence_threshold
@@ -45,7 +45,6 @@ class Recorder:
         self.finished_rec = False
         end = time.time() + self.silence_timeout
         # Store data in chunks
-        global audio_recording
         while time.time() < end:
             data = self.stream.read(self.chunk)
             # Extend recording time if the rms is above the threshold
@@ -61,7 +60,6 @@ class Recorder:
                 frames.append(data)
         print("Ending recording")
         self.talking = False
-        audio_recording = False
         return frames
 
     def stop_recording(self):

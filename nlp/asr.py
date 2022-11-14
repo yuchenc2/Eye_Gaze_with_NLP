@@ -7,9 +7,9 @@ import torch
 
 class ASR:
     def __init__(self, sampling_rate = 16000):
-        self.model = AutoModelForCTC.from_pretrained("facebook/wav2vec2-base-960h")
-        self.tokenizer = AutoTokenizer.from_pretrained("facebook/wav2vec2-base-960h")
-        self.feature_extractor = AutoFeatureExtractor.from_pretrained("facebook/wav2vec2-base-960h")
+        self.model = AutoModelForCTC.from_pretrained("/home/johnny33333/Eye_Gaze_with_NLP/nlp/models/wav2vec2-base-960h")
+        self.tokenizer = AutoTokenizer.from_pretrained("/home/johnny33333/Eye_Gaze_with_NLP/nlp/models/wav2vec2-base-960h")
+        self.feature_extractor = AutoFeatureExtractor.from_pretrained("/home/johnny33333/Eye_Gaze_with_NLP/nlp/models/wav2vec2-base-960h")
         self.sampling_rate = sampling_rate
 
     def load_data(self, input_file):
@@ -44,16 +44,16 @@ class ASR:
         word_index = 0
         for d in outputs.word_offsets:
             if d["word"] in word_offsets:
-                word_offsets[d["word"]][word_index] = {
+                word_offsets[d["word"].lower() ][word_index] = {
                     "start_time": round(d["start_offset"] * time_offset, 2),
                     "end_time": round(d["end_offset"] * time_offset, 2)
                 }
             else:
-                word_offsets[d["word"]] = {word_index: {
+                word_offsets[d["word"].lower() ] = {word_index: {
                     "start_time": round(d["start_offset"] * time_offset, 2),
                     "end_time": round(d["end_offset"] * time_offset, 2)
                 }}
             word_index += 1
-            word_list.append(d["word"])
+            word_list.append(d["word"].lower())
         return word_list, word_offsets
 
