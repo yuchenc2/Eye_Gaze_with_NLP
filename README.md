@@ -1,7 +1,7 @@
 # Eye_Gaze_with_NLP
 
 ## Description
-In this work, we propose and evaluate our intention prediction algo-rithm for humanoid tele-manipulation through two in-depth human experiments. Our main contributions are highlighted as follows: 
+In this work, we propose and evaluate our intention prediction algorithm for tele-manipulation through two in-depth human experiments. Our main contributions are highlighted as follows: 
 * A novel algorithm that infers human’s intended grasping object in tele-operation using speech recognition and eye-gaze
 * Two extensive human experiments to understand human psychophysics patterns and evaluate the performance of our approach
 
@@ -40,10 +40,10 @@ Please contanct Johnny Chang (yuchenc2@illinois.edu) and Nitish Gandi (gandi2@il
 
 
 ### Executing program
-* Make sure your ...
-* ...Start Expo
+* Run the Gazepoint program to capture the eye-gaze data on a windows machine. Make sure that the data is sent to the linux machine by setting the linux's IP address in the program's setting. Change the IP address in GazepointAPI.py to your windows machine's IP address.
+* Run the main.py program 
   ```
-  ...expo start
+  python3 main.py
   ```
 
 
