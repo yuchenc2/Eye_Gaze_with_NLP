@@ -8,6 +8,7 @@ from nlp.recorder import Recorder
 from GazepointAPI import Gaze
 from threading import Thread
 import cv2
+import socket
 import numpy as np
 
 
@@ -41,9 +42,8 @@ def match_segments_to_speech(class_names, word_offsets):
             class_name_speech_info.append((name, class_info))
     return class_name_speech_info, instance_speech_weights
 
-
-# set image quality
-cam = cv2.VideoCapture(0)
+# Change VideoCaptureindex to 2 for laptop, 0 for desktop
+cam = cv2.VideoCapture(2)
 cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
 cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
 
@@ -157,6 +157,7 @@ norm_eye_weights = []
 norm_speech_weights = []
 eye_gain = 1
 speech_gain = 2
+final_weights = 0
 if np.sum(instance_eye_weights) != 0:
     print("Normalized eye weights of instances (gaze count*duration):")
     norm_eye_weights = instance_eye_weights / np.sum(instance_eye_weights)
@@ -168,6 +169,12 @@ if np.sum(instance_speech_weights) != 0:
     print(norm_speech_weights)
     final_weights += speech_gain*norm_speech_weights
 
+msg = "2"
+if output_boxes[np.argmax(final_weights)][0] > 860 and output_boxes[np.argmax(final_weights)][2] > 860: #left and right are both on the right side
+    msg = "1"
+elif output_boxes[np.argmax(final_weights)][0] < 860 and output_boxes[np.argmax(final_weights)][2] < 860:
+    msg = "0"
+
 print("All instances weights normalized and multiplied with gains:")
 print(final_weights)
 print("Final predicted intended instance:")
@@ -178,3 +185,18 @@ cv2.waitKey(0)
 gaze.close_socket()
 cv2.destroyAllWindows()
 print("Released Window and Sockets")
+
+in_str = input("Sending data...\n")
+while in_str != " ":
+    in_str = input("Sending data...\n")
+
+print("Message to send:", msg)
+if msg != "2":
+    bytesToSend         = str.encode(msg)
+    serverAddressPort   = ("0.0.0.0", 4950)
+    bufferSize          = 1024
+    # Create a UDP socket at client side
+    UDPClientSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+    # Send to server using created UDP socket
+    UDPClientSocket.sendto(bytesToSend, serverAddressPort)
+    print("SENT")
