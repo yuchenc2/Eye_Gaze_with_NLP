@@ -51,4 +51,4 @@ class Detector:
         self.image_height, self.image_width, self.image_channels = image.shape
         print("Image_h: " + str(self.image_height) + ", Image_w: " + str(self.image_width))
         return output_image, output_boxes, classes, output_masks
-        
+
