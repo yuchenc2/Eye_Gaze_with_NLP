@@ -7,9 +7,9 @@ import torch
 
 class ASR:
     def __init__(self, sampling_rate = 16000):
-        self.model = AutoModelForCTC.from_pretrained("/home/johnny33333/Eye_Gaze_with_NLP/nlp/models/wav2vec2-base-960h")
-        self.tokenizer = AutoTokenizer.from_pretrained("/home/johnny33333/Eye_Gaze_with_NLP/nlp/models/wav2vec2-base-960h")
-        self.feature_extractor = AutoFeatureExtractor.from_pretrained("/home/johnny33333/Eye_Gaze_with_NLP/nlp/models/wav2vec2-base-960h")
+        self.model = AutoModelForCTC.from_pretrained("facebook/wav2vec2-base-960h")
+        self.tokenizer = AutoTokenizer.from_pretrained("facebook/wav2vec2-base-960h")
+        self.feature_extractor = AutoFeatureExtractor.from_pretrained("facebook/wav2vec2-base-960h")
         self.sampling_rate = sampling_rate
 
     def load_data(self, input_file):
