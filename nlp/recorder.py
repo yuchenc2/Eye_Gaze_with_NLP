@@ -6,7 +6,7 @@ import time
 
 
 class Recorder:
-    def __init__(self, chunk=1024, silence_threshold=150, silence_timeout=2, channels=2, fs=16000, swidth=2):
+    def __init__(self, chunk=1024, silence_threshold=50, silence_timeout=3, channels=2, fs=16000, swidth=2):
         # Record in chunks of 1024 samples
         self.chunk = chunk
         self.silence_threshold = silence_threshold
@@ -53,6 +53,7 @@ class Recorder:
                 if not self.talking:
                     print("Talking detected, recording started")
                     self.talking = True
+                    audio_recording = True  
             elif not self.talking:
                 end = time.time() + self.silence_timeout
             if self.talking:

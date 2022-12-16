@@ -44,16 +44,16 @@ class ASR:
         word_index = 0
         for d in outputs.word_offsets:
             if d["word"] in word_offsets:
-                word_offsets[d["word"]][word_index] = {
+                word_offsets[d["word"].lower() ][word_index] = {
                     "start_time": round(d["start_offset"] * time_offset, 2),
                     "end_time": round(d["end_offset"] * time_offset, 2)
                 }
             else:
-                word_offsets[d["word"]] = {word_index: {
+                word_offsets[d["word"].lower() ] = {word_index: {
                     "start_time": round(d["start_offset"] * time_offset, 2),
                     "end_time": round(d["end_offset"] * time_offset, 2)
                 }}
             word_index += 1
-            word_list.append(d["word"])
+            word_list.append(d["word"].lower())
         return word_list, word_offsets
 

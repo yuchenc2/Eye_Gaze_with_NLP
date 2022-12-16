@@ -1,9 +1,10 @@
 from detectron2.engine import DefaultPredictor
 from detectron2.config import get_cfg
 from detectron2.data import MetadataCatalog
-from detectron2.utils.visualizer import ColorMode, Visualizer
+from detectron2.utils.visualizer import ColorMode, Visualizer, GenericMask
 from detectron2 import model_zoo
 import cv2
+import numpy as np
 
 
 class Detector:
@@ -17,7 +18,6 @@ class Detector:
         elif model_type == "IS":
             self.cfg.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))
             self.cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml")
-        
         self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.9
         self.cfg.MODEL.DEVICE = "cpu"
 
@@ -32,19 +32,23 @@ class Detector:
         # Predict and show bounding boxes
         predictions = self.predictor(image)
         metadata=MetadataCatalog.get(self.cfg.DATASETS.TRAIN[0])
-        viz = Visualizer(image[:, :, ::-1], metadata, instance_mode = ColorMode.IMAGE_BW)
+        viz = Visualizer(image[:, :, ::-1], metadata, instance_mode = ColorMode.IMAGE_BW) # ::-1 = all items in arry reversed
         output = viz.draw_instance_predictions(predictions["instances"].to("cpu"))
         class_catalog = metadata.thing_classes
         
         classes = [class_catalog[i] for i in predictions['instances'].pred_classes.numpy()]
-        # print("class: ", classes)
-        # print("box: ", predictions['instances'].pred_boxes)
         output_boxes = predictions['instances'].pred_boxes.tensor.numpy()
+        output_image = output.get_image()[:, :, ::-1]
         # print(output_boxes)
-        # print("mask: ", predictions['instances'].pred_masks)
+
+        if predictions['instances'].has("pred_masks"):
+            output_masks = np.asarray(predictions['instances'].pred_masks)
+            output_masks = [GenericMask(x, viz.output.height, viz.output.width) for x in output_masks]
+        else:
+            output_masks = None
 
         # Show the window in full screen
         self.image_height, self.image_width, self.image_channels = image.shape
         print("Image_h: " + str(self.image_height) + ", Image_w: " + str(self.image_width))
-        return predictions, output, output_boxes, classes
+        return output_image, output_boxes, classes, output_masks
 
