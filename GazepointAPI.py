@@ -5,7 +5,7 @@ import re
 class Gaze:
     def __init__(self):
         # Host machine IP
-        self.HOST = '192.168.0.22'
+        self.HOST = '169.254.153.45'
         # Gazepoint Port
         self.PORT = 4242
         self.ADDRESS = (self.HOST, self.PORT)
