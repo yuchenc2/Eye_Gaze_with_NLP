@@ -169,11 +169,16 @@ if np.sum(instance_speech_weights) != 0:
     print(norm_speech_weights)
     final_weights += speech_gain*norm_speech_weights
 
-msg = "2"
-if output_boxes[np.argmax(final_weights)][0] > 860 and output_boxes[np.argmax(final_weights)][2] > 860: #left and right are both on the right side
-    msg = "1"
-elif output_boxes[np.argmax(final_weights)][0] < 860 and output_boxes[np.argmax(final_weights)][2] < 860:
-    msg = "0"
+xLoc = (output_boxes[np.argmax(final_weights)][0] + output_boxes[np.argmax(final_weights)][2])/2
+yLoc = (output_boxes[np.argmax(final_weights)][1] + output_boxes[np.argmax(final_weights)][3])/2
+xItem = [] # list of x locations
+yItem = [] # list of y locations
+pixelRange = 10 # 20 pixel range
+msg = "-1" #initialize the message to none
+for item in range(len(xItem)):
+    if ((xItem[item] -  pixelRange) < xLoc < (xItem[item] -  pixelRange)) && ((yItem[item] -  pixelRange) < yLoc < (yItem[item] -  pixelRange)):
+        msg = str(item)
+        break
 
 print("All instances weights normalized and multiplied with gains:")
 print(final_weights)
