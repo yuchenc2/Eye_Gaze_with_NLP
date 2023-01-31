@@ -12,12 +12,14 @@ import socket
 import numpy as np
 import os
 import json
+import time
 
 
 # Global variables for getting results from recording thread
 transcription = []
 word_offsets = {}
 audio_recording = False
+speech_start_time = 0.0
 
 # Global variables for getting last mouse click coordinates on a cv2 image
 mouse_x = 0
@@ -28,14 +30,14 @@ def record_and_transcribe(rec, recording_filename="output.wav"):
     # Record until silence is detected for 2 seconds
     global transcription
     global word_offsets
-    rec_frames = rec.record_until_silence()
+    rec_frames, speech_start_time = rec.record_until_silence()
     rec.stop_recording()
     rec.save_recording(rec_frames, recording_filename)
     # Transcribe the recording
     asr = ASR()
     # Outputs in the form [word for word in recording], {word: {index: {start_time: float, end_time: float}} for word in recording}
     transcription, word_offsets = asr.asr_transcript(recording_filename)
-    return transcription, word_offsets
+    return transcription, word_offsets, speech_start_time
 
 
 def match_segments_to_speech(class_names, word_offsets):
@@ -115,6 +117,7 @@ rec_thread.start()
 
 # Capture the eye gaze
 gaze = Gaze()
+eye_gaze_start_time = time.time()
 while (gaze.time == 1) or (gaze.time == 0):
     gaze.eye_gaze_capture()
 init_time = gaze.time
@@ -206,7 +209,7 @@ while in_str != " ":
     in_str = input("Sending data...\n")
 
 print("Message to send:", msg)
-if msg != "2":
+if msg != "-1":
     bytesToSend         = str.encode(msg)
     serverAddressPort   = ("0.0.0.0", 4950)
     bufferSize          = 1024
@@ -233,6 +236,8 @@ for i in range(2):
         collected_data["actual_object"] = {"class": class_names[instance_idx], "bounding_box": list(output_boxes[instance_idx])}
     else:
         collected_data["predicted_object"] = {"class": class_names[instance_idx], "bounding_box": list(output_boxes[instance_idx])}
+# Save the timing of the first word and the
+collected_data["start_timing"] = {"eye-gaze": eye_gaze_start_time, "word": speech_start_time}
 # Save word timings as a list of lists in the format of [word, start time] for each recorded word
 collected_data["word_timings"] = [[transcription[i], word_offsets[transcription[i]][i]["start_time"]] for i in range(len(transcription))]
 # Save segmentation outputs as a list of lists in the format of [class, bounding box corner 1, bounding box corner 2] for each detected object
