@@ -31,10 +31,10 @@ class Gaze:
     def eye_gaze_capture(self): # returns 1 if fixation detected
         # extract the values from the gaze output string
         # <REC TIME="39.56323" FPOGX="0.00000" FPOGY="0.00000" FPOGS="38.72517" FPOGD="0.08258" FPOGID="30" FPOGV="0" />
-        rxdat = self.curr_socket.recv(1024)   
+        rxdat = self.curr_socket.recv(1024)
         eye_raw = bytes.decode(rxdat)
         extracted_floats = [float(rxdat) for rxdat in re.findall(r"[-+]?(?:\d*\.\d+|\d+)", eye_raw)]  
-        self.time = extracted_floats[0] 
+        self.time = extracted_floats[0]
         
         if len(extracted_floats) == 7 and int(extracted_floats[6]) == 1: #If eye gaze is a fixation (filter out none fixation points)
             self.REC_Time.append(extracted_floats[0]) #Time since system initialization
@@ -43,7 +43,7 @@ class Gaze:
             self.FPOGS.append(extracted_floats[3]) #Starting time of the fixation since system initialization
             self.FPOGD.append(extracted_floats[4]) #Duration of the fixation
             self.fixation_counts += 1
-            return 1 
+            return 1
         else:
             return 0
 
