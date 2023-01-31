@@ -10,12 +10,18 @@ from threading import Thread
 import cv2
 import socket
 import numpy as np
+import os
+import json
 
 
 # Global variables for getting results from recording thread
 transcription = []
 word_offsets = {}
 audio_recording = False
+
+# Global variables for getting last mouse click coordinates on a cv2 image
+mouse_x = 0
+mouse_y = 0
 
 
 def record_and_transcribe(rec, recording_filename="output.wav"):
@@ -41,6 +47,43 @@ def match_segments_to_speech(class_names, word_offsets):
             instance_speech_weights[count] += 1
             class_name_speech_info.append((name, class_info))
     return class_name_speech_info, instance_speech_weights
+
+
+def get_click_coords(event, x, y, flags, param):
+    global mouse_x, mouse_y
+    # Record mouse coordinates when clicking on a cv2 window (only works for last pair of images)
+    if event == cv2.EVENT_LBUTTONDOWN:
+        mouse_x = x
+        mouse_y = y
+
+
+def in_instance_mask(point_x, point_y, bounding_boxes, masks, eye_gaze=False):
+    point = Point(point_x, point_y)
+    for i in range(bounding_boxes.shape[0]):
+        for segment in masks[i].polygons:
+            segment = segment.reshape(-1, 2)
+            polygon = Polygon(segment)
+            if polygon.contains(point) and eye_gaze:
+                global instance_eye_weights, instance_fixation_counts, gaze, output_image
+                instance_eye_weights[i] += gaze.FPOGD[-1]
+                instance_fixation_counts[i] += 1
+                output_image = cv2.circle(output_image.astype(np.uint8), (point_x, point_y), radius=2, color=(0, 0, 255), thickness=-1)
+            elif polygon.contains(point):
+                return i
+    return -1
+
+
+def process_eye_gaze(frame, image_width, image_height, bounding_boxes, masks):
+    global gaze
+    cv2.imshow("Image_Input", frame)
+    cv2.waitKey(1)
+    if gaze.eye_gaze_capture(): # if it's a fixation
+        if gaze.FPOGX and gaze.FPOGY: # if list is not empty
+            eye_gaze_x = int(gaze.FPOGX[-1] * image_width)
+            eye_gaze_y = int(gaze.FPOGY[-1] * image_height)
+            # Check if within instances' masks
+            in_instance_mask(eye_gaze_x, eye_gaze_y, bounding_boxes, masks, eye_gaze=True)
+
 
 # Change VideoCaptureindex to 2 for laptop, 0 for desktop
 cam = cv2.VideoCapture(2)
@@ -83,46 +126,13 @@ instance_fixation_counts = np.zeros(output_boxes.shape[0])
 
 # Check if eye gaze is in any instance
 while (rec.talking == False): # wait until audio command
-    cv2.imshow("Image_Input", frame)
-    cv2.waitKey(1)
-    gaze.eye_gaze_capture()
-    if gaze.FPOGX and gaze.FPOGY: # if list is not empty
-        eye_gaze_x = int(gaze.FPOGX[-1]*detector.image_width) 
-        eye_gaze_y = int(gaze.FPOGY[-1]*detector.image_height)
-
-        # Check if within instances' masks
-        point = Point(eye_gaze_x, eye_gaze_y)
-        for i in range(output_boxes.shape[0]):
-            for segment in output_masks[i].polygons:
-                segment = segment.reshape(-1, 2)
-                polygon = Polygon(segment)
-                if polygon.contains(point):
-                    instance_eye_weights[i] += gaze.FPOGD[-1]
-                    instance_fixation_counts[i] += 1
-                    output_image = cv2.circle(output_image.astype(np.uint8), (eye_gaze_x, eye_gaze_y), radius=2, color=(0, 0, 255), thickness=-1)
+    process_eye_gaze(frame, detector.image_width, detector.image_height, output_boxes, output_masks)
 
 while (rec.talking == True): # received audio
     if output_masks is None:
         print("No instance detected")
         break
-    cv2.imshow("Image_Input", frame)
-    cv2.waitKey(1)
-    if gaze.eye_gaze_capture(): # if it's a fixation
-        if gaze.FPOGX and gaze.FPOGY: # if list is not empty
-            eye_gaze_x = int(gaze.FPOGX[-1]*detector.image_width) 
-            eye_gaze_y = int(gaze.FPOGY[-1]*detector.image_height)
-
-            # Check if within instances' masks
-            point = Point(eye_gaze_x, eye_gaze_y)
-            for i in range(output_boxes.shape[0]):
-                for segment in output_masks[i].polygons:
-                    segment = segment.reshape(-1, 2)
-                    polygon = Polygon(segment)
-                    if polygon.contains(point):
-                        instance_eye_weights[i] += gaze.FPOGD[-1]
-                        instance_fixation_counts[i] += 1
-                        output_image = cv2.circle(output_image.astype(np.uint8), (eye_gaze_x, eye_gaze_y), radius=2, color=(0, 0, 255), thickness=-1)
-
+    process_eye_gaze(frame, detector.image_width, detector.image_height, output_boxes, output_masks)
 
             # Check if within instances' bounding boxes
             # output_boxes = [[x1, y1, x2, y2], ...]
@@ -176,7 +186,7 @@ yItem = [] # list of y locations
 pixelRange = 10 # 20 pixel range
 msg = "-1" #initialize the message to none
 for item in range(len(xItem)):
-    if ((xItem[item] -  pixelRange) < xLoc < (xItem[item] -  pixelRange)) && ((yItem[item] -  pixelRange) < yLoc < (yItem[item] -  pixelRange)):
+    if ((xItem[item] - pixelRange) < xLoc < (xItem[item] - pixelRange)) and ((yItem[item] - pixelRange) < yLoc < (yItem[item] - pixelRange)):
         msg = str(item)
         break
 
@@ -205,3 +215,36 @@ if msg != "2":
     # Send to server using created UDP socket
     UDPClientSocket.sendto(bytesToSend, serverAddressPort)
     print("SENT")
+
+
+collected_data = {}
+data_dir = "data"
+
+cv2.namedWindow("Image_Input")
+cv2.setMouseCallback("Image_Input", get_click_coords)
+
+for i in range(2):
+    # Click once then press a key to exit the image (in the order of desired object and predicted object)
+    cv2.imshow("Image_Input", output_image)
+    cv2.waitKey(0)
+    instance_idx = in_instance_mask(mouse_x, mouse_y, output_boxes, output_masks, eye_gaze=False)
+    # Save object class and bounding box
+    if i == 0:
+        collected_data["actual_object"] = {"class": class_names[instance_idx], "bounding_box": list(output_boxes[instance_idx])}
+    else:
+        collected_data["predicted_object"] = {"class": class_names[instance_idx], "bounding_box": list(output_boxes[instance_idx])}
+# Save word timings as a list of lists in the format of [word, start time] for each recorded word
+collected_data["word_timings"] = [[transcription[i], word_offsets[transcription[i]][i]["start_time"]] for i in range(len(transcription))]
+# Save segmentation outputs as a list of lists in the format of [class, bounding box corner 1, bounding box corner 2] for each detected object
+collected_data["segmentation_outputs"] = [[class_names[i], list(output_boxes[i][:2]), list(output_boxes[i][2:])] for i in range(len(class_names))]
+# Save fixation eye gaze data as a list of lists in the format of [gaze x location, gaze y location, gaze time since system initialization] for each recorded gaze
+collected_data["eye_gaze_data"] = [[int(gaze.FPOGX[i] * detector.image_width), int(gaze.FPOGY[i] * detector.image_height), gaze.REC_Time[i]] for i in range(len(gaze.FPOGX))]
+# Create "data" folder if it does not exist
+if not os.path.exists(data_dir):
+    os.makedirs(data_dir)
+# Dump collected system data into the data folder as a json file
+with open(os.path.join(data_dir, "collected_data.json"), "+w") as data_file:
+    json.dump(collected_data, data_file)
+# Save original and final images in the data folder
+cv2.imwrite(os.path.join(data_dir, "original_camera_image.png"), frame)
+cv2.imwrite(os.path.join(data_dir, "final_segemented_gaze_image.png"), output_image)
