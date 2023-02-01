@@ -184,9 +184,9 @@ if np.sum(instance_speech_weights) != 0:
 
 xLoc = (output_boxes[np.argmax(final_weights)][0] + output_boxes[np.argmax(final_weights)][2])/2
 yLoc = (output_boxes[np.argmax(final_weights)][1] + output_boxes[np.argmax(final_weights)][3])/2
-xItem = [] # list of x locations
-yItem = [] # list of y locations
-pixelRange = 10 # 20 pixel range
+xItem = [215, 333, 405, 536, 597, 659] # list of x locations
+yItem = [376, 455, 351, 421, 322, 462] # list of y locations
+pixelRange = 60 # 60 pixel range
 msg = "-1" #initialize the message to none
 for item in range(len(xItem)):
     if ((xItem[item] - pixelRange) < xLoc < (xItem[item] - pixelRange)) and ((yItem[item] - pixelRange) < yLoc < (yItem[item] - pixelRange)):
@@ -197,6 +197,8 @@ print("All instances weights normalized and multiplied with gains:")
 print(final_weights)
 print("Final predicted intended instance:")
 print(class_names[np.argmax(final_weights)])
+print("Final predicted location:")
+print(msg)
 cv2.imshow("Image_Input", output_image)
 cv2.waitKey(0)
 
@@ -233,15 +235,15 @@ for i in range(2):
     instance_idx = in_instance_mask(mouse_x, mouse_y, output_boxes, output_masks, eye_gaze=False)
     # Save object class and bounding box
     if i == 0:
-        collected_data["actual_object"] = {"class": class_names[instance_idx], "bounding_box": list(output_boxes[instance_idx])}
+        collected_data["actual_object"] = {"instance idx" : instance_idx, "class": class_names[instance_idx], "bounding_box": list(output_boxes[instance_idx])}
     else:
-        collected_data["predicted_object"] = {"class": class_names[instance_idx], "bounding_box": list(output_boxes[instance_idx])}
+        collected_data["predicted_object"] = {"instance idx" : instance_idx, "class": class_names[instance_idx], "bounding_box": list(output_boxes[instance_idx])}
 # Save the timing of the first word and the
 collected_data["start_timing"] = {"eye-gaze": eye_gaze_start_time, "word": speech_start_time}
 # Save word timings as a list of lists in the format of [word, start time] for each recorded word
 collected_data["word_timings"] = [[transcription[i], word_offsets[transcription[i]][i]["start_time"]] for i in range(len(transcription))]
-# Save segmentation outputs as a list of lists in the format of [class, bounding box corner 1, bounding box corner 2] for each detected object
-collected_data["segmentation_outputs"] = [[class_names[i], list(output_boxes[i][:2]), list(output_boxes[i][2:])] for i in range(len(class_names))]
+# Save segmentation outputs as a list of lists in the format of [instance_idx, class, bounding box corner 1, bounding box corner 2] for each detected object
+collected_data["segmentation_outputs"] = [[i, class_names[i], list(output_boxes[i][:2]), list(output_boxes[i][2:])] for i in range(len(class_names))]
 # Save fixation eye gaze data as a list of lists in the format of [gaze x location, gaze y location, gaze time since system initialization] for each recorded gaze
 collected_data["eye_gaze_data"] = [[int(gaze.FPOGX[i] * detector.image_width), int(gaze.FPOGY[i] * detector.image_height), gaze.REC_Time[i]] for i in range(len(gaze.FPOGX))]
 # Create "data" folder if it does not exist
