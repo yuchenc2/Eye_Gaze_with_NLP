@@ -105,7 +105,7 @@ if __name__ == '__main__':
 
     stand.close_gripper(stand.gripper_group1_2)
 
-    for cnt in range(6):
+    for cnt in range(30):
         stand.move_arm_to_named_pose("eye_gaze_init", stand.arm_group1_2)
         cam = cv2.VideoCapture(2)
         cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
@@ -122,7 +122,7 @@ if __name__ == '__main__':
         img_name = "captured.png"
         cv2.imwrite(img_name, frame)
         print("{} written!".format(img_name))
-        cam.release()
+        # cam.release()
 
         # Detect item in image
         detector = Detector(model_type="IS")
@@ -188,7 +188,7 @@ if __name__ == '__main__':
         norm_eye_weights = []
         norm_speech_weights = []
         eye_gain = 1
-        speech_gain = 2
+        speech_gain = 1
         final_weights = 0
         if np.sum(instance_eye_weights) != 0:
             # print("Normalized eye weights of instances (gaze count*duration):")
@@ -284,16 +284,17 @@ if __name__ == '__main__':
         cv2.namedWindow("Image_Input")
         cv2.setMouseCallback("Image_Input", get_click_coords)
 
-        # for i in range(2):
-        #     # Click once then press a key to exit the image (in the order of desired object and predicted object)
-        #     cv2.imshow("Image_Input", output_image)
-        #     cv2.waitKey(0)
-        #     instance_idx = in_instance_mask(mouse_x, mouse_y, output_boxes, output_masks,  instance_eye_weights, instance_fixation_counts, gaze, output_image, eye_gaze=False)
-        #     # Save object class and bounding box
-        #     if i == 0:
-        #         collected_data["actual_object"] = {"instance idx" : instance_idx, "class": class_names[instance_idx], "bounding_box": list(output_boxes[instance_idx])}
-        #     else:
-        #         collected_data["predicted_object"] = {"instance idx" : instance_idx, "class": class_names[instance_idx], "bounding_box": list(output_boxes[instance_idx])}
+        # Click once then press a key to exit the image (desired object)
+        cv2.imshow("Image_Input", output_image)
+        cv2.waitKey(0)
+        instance_idx = in_instance_mask(mouse_x, mouse_y, output_boxes, output_masks,  instance_eye_weights, instance_fixation_counts, gaze, output_image, eye_gaze=False)
+        # Save object class and bounding box
+        collected_data["actual_object"] = {"instance idx" : instance_idx, "class": class_names[instance_idx], "bounding_box": list(output_boxes[instance_idx])}    
+        collected_data["both predicted_object"] = {"instance idx" : np.argmax(final_weights), "class": class_names[np.argmax(final_weights)], "bounding_box": list(output_boxes[np.argmax(final_weights)])}
+        if np.sum(instance_eye_weights) != 0:
+            collected_data["eye-gaze predicted_object"] = {"instance idx" : np.argmax(norm_eye_weights), "class": class_names[np.argmax(norm_eye_weights)], "bounding_box": list(output_boxes[np.argmax(norm_eye_weights)])}
+        if np.sum(instance_speech_weights) != 0:
+            collected_data["speech predicted_object"] = {"instance idx" : np.argmax(norm_speech_weights), "class": class_names[np.argmax(norm_speech_weights)], "bounding_box": list(output_boxes[np.argmax(norm_speech_weights)])}
         # Save the timing of the first word and the
         collected_data["start_timing"] = {"eye-gaze": eye_gaze_start_time, "word": speech_start_time, "total_time": inference_time}
         # Save word timings as a list of lists in the format of [word, start time] for each recorded word
