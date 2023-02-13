@@ -43,6 +43,7 @@ class Recorder:
         frames = []
         print("Recording starts first instance of noise")
         self.finished_rec = False
+        speech_start_time = 0
         end = time.time() + self.silence_timeout
         # Store data in chunks
         while time.time() < end:
@@ -51,6 +52,7 @@ class Recorder:
             if self.rms(data) > self.silence_threshold:
                 end = time.time() + self.silence_timeout
                 if not self.talking:
+                    speech_start_time = time.time()
                     print("Talking detected, recording started")
                     self.talking = True
                     audio_recording = True  
@@ -60,7 +62,7 @@ class Recorder:
                 frames.append(data)
         print("Ending recording")
         self.talking = False
-        return frames
+        return frames, speech_start_time
 
     def stop_recording(self):
         # Stop and close the stream
