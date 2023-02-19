@@ -2,3 +2,7 @@ __pycache__
 *.wav
 .vscode
 *.png
+*.zip
+data/
+*env/
+*data/
