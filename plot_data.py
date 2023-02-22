@@ -5,6 +5,7 @@ from glob import glob
 import ast
 import matplotlib.pyplot as plt
 import numpy as np
+from collections import defaultdict
 
 # # Check the total number of files
 # subjects = ['jooyoung', 'kevin', 'kyungseo', 'omar', 'sankalp']
@@ -18,17 +19,17 @@ import numpy as np
 def plot_graph(graph_name):
     
     cases = ['Case 1', 'Case 2', 'Case 3', 'Case 4'] # 'Xocc_Xdup','Xocc_dup','occ_Xdup', 'occ_dup'
-    methods = {'speech':[],'eye-gaze': [], 'speech_eye-gaze':[]}
+    methods = ['speech','eye-gaze', 'speech_eye-gaze'] #{'speech':[],'eye-gaze': [], 'speech_eye-gaze':[]}
     objects = ['cup','orange', 'scissors']
-    pred_acc = dict.fromkeys(objects,dict.fromkeys(cases, methods))
+    pred_acc = defaultdict(lambda: defaultdict(lambda: defaultdict(list))) 
     
     subjects = ['jooyoung', 'kevin', 'kyungseo', 'omar', 'sankalp']
 
     ### Graph1: Prediction accuracy bar graph
     if graph_name == "pred_acc":      
         for subject in subjects:
-            for case in cases:
-                for obj in objects:
+            for obj in objects:
+                for case in cases:                
                     files = glob('./'+subject+'/'+case+'/'+obj+'/'+'*.json')             
                     for file in files:
                         with open(file) as json_file:
@@ -40,26 +41,25 @@ def plot_graph(graph_name):
                             # Count only if the 'actual_object' is correct
                             if data['actual_object']['class'] == obj:         
                                 if 'speech predicted_object' in data.keys():
-                                    speech_result = int(data['speech predicted_object']['class']==obj)
+                                    speech_result = int(np.logical_and(data['speech predicted_object']['class']==obj, data['speech predicted_object']['instance idx']==data['actual_object']['instance idx']))
                                 else: # ! if the speech prediction fails, consider incorrect
                                     speech_result = 0
                                 pred_acc[obj][case]['speech'].append(speech_result)  
                                     
                                     
                                 if 'eye-gaze predicted_object' in data.keys():
-                                    eye_gaze_result = int(data['eye-gaze predicted_object']['class']==obj)
+                                    eye_gaze_result = int(np.logical_and(data['eye-gaze predicted_object']['class']==obj, data['eye-gaze predicted_object']['instance idx']==data['actual_object']['instance idx']))
                                 else: # ! if the eye-gaze prediction fails, consider incorrect
                                     eye_gaze_result = 0
                                 pred_acc[obj][case]['eye-gaze'].append(eye_gaze_result)
                                 
                                 if 'both predicted_object' in data.keys():# 'speech predicted_object' and  'eye-gaze predicted_object' in data.keys():
-                                    speech_eye_gaze_result = int(data['both predicted_object']['class']==obj)    
+                                    speech_eye_gaze_result = int(np.logical_and(data['both predicted_object']['class']==obj, data['both predicted_object']['instance idx']==data['actual_object']['instance idx']))    
                                 else: # ! if either the eye_gaze result , consider incorrect
                                     speech_eye_gaze_result = 0                                                                            
                                 pred_acc[obj][case]['speech_eye-gaze'].append(speech_eye_gaze_result)
 
 
-        print("Number of available samples:")
         
         # Build the prediction accuracy plot 
         titles = ['Cup', 'Orange', 'Scissors']       
@@ -80,15 +80,23 @@ def plot_graph(graph_name):
             
                 # Check how many data are available for evaluation
                 print("Number of available samples for ", obj, method," (4 cases):", [len(pred_acc[obj][case][method]) for case in cases])  # 291
-                
-            plt.ylim([60,100])    
+                # Number of available samples for  cup speech  (4 cases): [24, 24, 25, 25]
+                # Number of available samples for  cup eye-gaze  (4 cases): [24, 24, 25, 25]
+                # Number of available samples for  cup speech_eye-gaze  (4 cases): [24, 24, 25, 25]
+                # Number of available samples for  orange speech  (4 cases): [24, 25, 24, 25]
+                # Number of available samples for  orange eye-gaze  (4 cases): [24, 25, 24, 25]
+                # Number of available samples for  orange speech_eye-gaze  (4 cases): [24, 25, 24, 25]
+                # Number of available samples for  scissors speech  (4 cases): [25, 25, 25, 20]
+                # Number of available samples for  scissors eye-gaze  (4 cases): [25, 25, 25, 20]
+                                
+            # plt.ylim([60,100])    
             plt.xlabel("Cases")
             plt.ylabel("Prediction Accuracy (%)")
             plt.title(title)
             
             # plt.grid(linestyle='--')
             plt.xticks(r + width/2,['Case 1', 'Case 2', 'Case 3', 'Case 4'])
-            plt.legend(loc = "lower right")
+            plt.legend(loc = "lower left")
             # ax.yaxis.grid(True)
 
             # Save the figure and show
@@ -164,5 +172,5 @@ def plot_graph(graph_name):
         ### Graph3: NASA-TRX
 
 graph_name = "pred_acc" # "target_gaze_portion" # nasa_trx
-plot_graph("pred_acc")
+plot_graph(graph_name)
 
