@@ -6,6 +6,8 @@ import ast
 import matplotlib.pyplot as plt
 import numpy as np
 from collections import defaultdict
+import csv
+
 
 # # Check the total number of files
 # subjects = ['jooyoung', 'kevin', 'kyungseo', 'omar', 'sankalp']
@@ -105,7 +107,7 @@ def plot_graph(graph_name):
             plt.show()               
 
     ### Graph2: target gaze portion vs speech start time plot
-    elif graph_name == 'target_gaze_portion':        
+    elif graph_name == "target_gaze_portion":        
         window_size = 0.1
         win_gaze_portion = {'Case 1':[], 'Case 2':[], 'Case 3':[], 'Case 4':[]} 
 
@@ -167,10 +169,47 @@ def plot_graph(graph_name):
         plt.savefig('target_gaze_portion.png')
         plt.show()               
 
+    ### Graph3: NASA-TRX
+    elif graph_name =="nasa_trx":            
+        with open('NASA TLX and Interview Questions.csv', mode='r') as csvfile:
+            reader = csv.reader(csvfile)
+            trx_data = []
+            for row in reader:
+                print(row[2:-3])
+                trx_data.append(row[2:-3])
+        trx_data = np.array(trx_data[1:],dtype=int)
+        trx_mean = np.mean(trx_data, axis=0).reshape((6,4))
+        print(trx_mean)
+        
+        x_pos = np.arange(trx_mean.shape[0])
+        fig, ax = plt.subplots()        
+        n=6
+        r = np.arange(n)
+        width = 0.2
+        colors = ['y','g', 'b', 'r']
+        
+        for i in range(trx_mean.shape[1]):      
+            trx_scale = [trx_mean[c, i] for c in range(trx_mean.shape[0])]
+            # pdb.set_trace()
+            plt.bar(x_pos+width*i, trx_scale, color = colors[i],
+                    width = width, edgecolor = colors[i],
+                    label=cases[i])
+                            
+        # plt.ylim([60,100])    
+        # plt.xlabel("Cases")
+        plt.ylabel("Scale (1-10)")
+        plt.title("NASA TLX Scores")
+        
+        # plt.grid(linestyle='--')
+        plt.xticks(r + width/2,['Mental \n Demand', 'Physical \n Demand', 'Temporal \n Demand', 'Performance', 'Effort', 'Frustration'])
+        plt.legend(loc = "lower left")
+        # ax.yaxis.grid(True)
 
-
-        ### Graph3: NASA-TRX
-
-graph_name = "pred_acc" # "target_gaze_portion" # nasa_trx
+        # Save the figure and show
+        plt.tight_layout()
+        plt.savefig('nasa_trx.png')
+        plt.show()               
+                                
+graph_name ="nasa_trx" #"pred_acc" # "target_gaze_portion" # "nasa_trx"
 plot_graph(graph_name)
 
