@@ -63,48 +63,95 @@ def plot_graph(graph_name):
 
 
         
-        # Build the prediction accuracy plot 
-        titles = ['Cup', 'Orange', 'Scissors']       
-        for obj, title in zip(objects, titles):
-            x_pos = np.arange(len(cases))
+        # # Build the prediction accuracy plot 
+        # titles = ['Cup', 'Orange', 'Scissors']       
+        # for obj, title in zip(objects, titles):
+        #     x_pos = np.arange(len(cases))
 
-            fig, ax = plt.subplots()        
-            n=4
-            r = np.arange(n)
-            width = 0.25
-            colors = ['y','g', 'b']
+        #     fig, ax = plt.subplots()        
+        #     n=4
+        #     r = np.arange(n)
+        #     width = 0.25
+        #     colors = ['y','g', 'b']
             
-            for i, method in enumerate(methods):      
-                method_acc = [np.mean(pred_acc[obj][case][method])*100 for case in cases]
-                plt.bar(x_pos+width*i, method_acc, color = colors[i],
-                        width = width, edgecolor = colors[i],
-                        label=method)
+        #     for i, method in enumerate(methods):      
+        #         method_acc = [np.mean(pred_acc[obj][case][method])*100 for case in cases]
+        #         plt.bar(x_pos+width*i, method_acc, color = colors[i],
+        #                 width = width, edgecolor = colors[i],
+        #                 label=method)
             
-                # Check how many data are available for evaluation
-                print("Number of available samples for ", obj, method," (4 cases):", [len(pred_acc[obj][case][method]) for case in cases])  # 291
-                # Number of available samples for  cup speech  (4 cases): [24, 24, 25, 25]
-                # Number of available samples for  cup eye-gaze  (4 cases): [24, 24, 25, 25]
-                # Number of available samples for  cup speech_eye-gaze  (4 cases): [24, 24, 25, 25]
-                # Number of available samples for  orange speech  (4 cases): [24, 25, 24, 25]
-                # Number of available samples for  orange eye-gaze  (4 cases): [24, 25, 24, 25]
-                # Number of available samples for  orange speech_eye-gaze  (4 cases): [24, 25, 24, 25]
-                # Number of available samples for  scissors speech  (4 cases): [25, 25, 25, 20]
-                # Number of available samples for  scissors eye-gaze  (4 cases): [25, 25, 25, 20]
+        #         # Check how many data are available for evaluation
+        #         print("Number of available samples for ", obj, method," (4 cases):", [len(pred_acc[obj][case][method]) for case in cases])  # 291
+        #         # Number of available samples for  cup speech  (4 cases): [24, 24, 25, 25]
+        #         # Number of available samples for  cup eye-gaze  (4 cases): [24, 24, 25, 25]
+        #         # Number of available samples for  cup speech_eye-gaze  (4 cases): [24, 24, 25, 25]
+        #         # Number of available samples for  orange speech  (4 cases): [24, 25, 24, 25]
+        #         # Number of available samples for  orange eye-gaze  (4 cases): [24, 25, 24, 25]
+        #         # Number of available samples for  orange speech_eye-gaze  (4 cases): [24, 25, 24, 25]
+        #         # Number of available samples for  scissors speech  (4 cases): [25, 25, 25, 20]
+        #         # Number of available samples for  scissors eye-gaze  (4 cases): [25, 25, 25, 20]
                                 
-            # plt.ylim([60,100])    
-            plt.xlabel("Cases")
-            plt.ylabel("Prediction Accuracy (%)")
-            plt.title(title)
+        #     # plt.ylim([60,100])    
+        #     plt.xlabel("Cases")
+        #     plt.ylabel("Prediction Accuracy (%)")
+        #     plt.title(title)
             
-            # plt.grid(linestyle='--')
-            plt.xticks(r + width/2,['Case 1', 'Case 2', 'Case 3', 'Case 4'])
-            plt.legend(loc = "lower left")
-            # ax.yaxis.grid(True)
+        #     # plt.grid(linestyle='--')
+        #     plt.xticks(r + width/2,['Case 1', 'Case 2', 'Case 3', 'Case 4'])
+        #     plt.legend(loc = "lower left")
+        #     # ax.yaxis.grid(True)
 
-            # Save the figure and show
-            plt.tight_layout()
-            plt.savefig('prediction_acc_'+obj+'.png')
-            plt.show()               
+        #     # Save the figure and show
+        #     plt.tight_layout()
+        #     plt.savefig('prediction_acc_'+obj+'.png')
+        #     plt.show()      
+            
+        # # Average of all objects
+        x_pos = np.arange(len(cases))
+
+        fig, ax = plt.subplots()        
+        n=4
+        r = np.arange(n)
+        width = 0.25
+        colors = ['y','g', 'b']
+        
+        for i, method in enumerate(methods):      
+            method_acc = []
+            for case in cases:
+                method_acc.append(np.mean(np.hstack([pred_acc[obj][case][method] for obj in objects])))
+                # pdb.set_trace()
+                    
+                    
+            # method_acc = [np.mean(pred_acc[obj][case][method])*100 for case in cases]
+            plt.bar(x_pos+width*i, method_acc, color = colors[i],
+                    width = width, edgecolor = colors[i],
+                    label=method)
+        
+            # Check how many data are available for evaluation
+            print("Number of available samples for ", obj, method," (4 cases):", [len(pred_acc[obj][case][method]) for case in cases])  # 291
+            # Number of available samples for  cup speech  (4 cases): [24, 24, 25, 25]
+            # Number of available samples for  cup eye-gaze  (4 cases): [24, 24, 25, 25]
+            # Number of available samples for  cup speech_eye-gaze  (4 cases): [24, 24, 25, 25]
+            # Number of available samples for  orange speech  (4 cases): [24, 25, 24, 25]
+            # Number of available samples for  orange eye-gaze  (4 cases): [24, 25, 24, 25]
+            # Number of available samples for  orange speech_eye-gaze  (4 cases): [24, 25, 24, 25]
+            # Number of available samples for  scissors speech  (4 cases): [25, 25, 25, 20]
+            # Number of available samples for  scissors eye-gaze  (4 cases): [25, 25, 25, 20]
+                            
+        # plt.ylim([60,100])    
+        plt.xlabel("Cases")
+        plt.ylabel("Prediction Accuracy (%)")
+        plt.title("All objects")
+        
+        # plt.grid(linestyle='--')
+        plt.xticks(r + width/2,['Case 1', 'Case 2', 'Case 3', 'Case 4'])
+        plt.legend(loc = "lower left")
+        # ax.yaxis.grid(True)
+
+        # Save the figure and show
+        plt.tight_layout()
+        plt.savefig('prediction_acc_all.png')
+        plt.show()                        
 
     ### Graph2: target gaze portion vs speech start time plot
     elif graph_name == "target_gaze_portion":        
@@ -181,6 +228,12 @@ def plot_graph(graph_name):
         trx_mean = np.mean(trx_data, axis=0).reshape((6,4))
         print(trx_mean)
         
+        
+        # # To use Seaborn
+        # head = np.array([['Mental Demand', 'Physical Demand', 'Temporal Demand', 'Performance', 'Effort', 'Frustration']]).T
+        # trx_mean = np.concatenate([head, trx_mean],axis=0)
+        
+        
         x_pos = np.arange(trx_mean.shape[0])
         fig, ax = plt.subplots()        
         n=6
@@ -190,26 +243,22 @@ def plot_graph(graph_name):
         
         for i in range(trx_mean.shape[1]):      
             trx_scale = [trx_mean[c, i] for c in range(trx_mean.shape[0])]
-            # pdb.set_trace()
+
             plt.bar(x_pos+width*i, trx_scale, color = colors[i],
                     width = width, edgecolor = colors[i],
-                    label=cases[i])
-                            
-        # plt.ylim([60,100])    
-        # plt.xlabel("Cases")
+                    label=cases[i])                            
+
         plt.ylabel("Scale (1-10)")
         plt.title("NASA TLX Scores")
         
-        # plt.grid(linestyle='--')
         plt.xticks(r + width/2,['Mental \n Demand', 'Physical \n Demand', 'Temporal \n Demand', 'Performance', 'Effort', 'Frustration'])
         plt.legend(loc = "lower left")
-        # ax.yaxis.grid(True)
 
         # Save the figure and show
         plt.tight_layout()
         plt.savefig('nasa_trx.png')
         plt.show()               
                                 
-graph_name ="nasa_trx" #"pred_acc" # "target_gaze_portion" # "nasa_trx"
+graph_name ="pred_acc"  #"pred_acc" # "target_gaze_portion" # "nasa_trx"
 plot_graph(graph_name)
 
