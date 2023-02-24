@@ -359,7 +359,7 @@ def plot_graph(graph_name):
             avg_gaze_portion = [np.nanmean(np.hstack(temp[:,i])) if np.any(~np.isnan(np.hstack(temp[:,i]))) else np.nan for i in range(temp.shape[1])]
             plt.plot(win_start_t[:-1], avg_gaze_portion, color=color, label=case, linewidth=3.5) 
 
-        plt.xlabel("Relative time to initial speech (ms)")
+        plt.xlabel("Relative time to initial speech (s)")
         plt.ylabel("Target gaze portion")
         # plt.title("Relationship between the target gaze portion and the speech starting time")
         plt.legend(loc='lower right')
@@ -455,6 +455,6 @@ def plot_graph(graph_name):
         # plt.show()               
                                 
 set_style()
-graph_name = "pred_acc" #"pred_acc" # "target_gaze_portion" # "nasa_tlx"
+graph_name = "target_gaze_portion" #"pred_acc" # "target_gaze_portion" # "nasa_tlx"
 plot_graph(graph_name)
 
