@@ -340,7 +340,7 @@ def plot_graph(graph_name):
                                     correct_pred_flag = np.logical_and(np.logical_and(np.logical_and(eye_gaze_x > left_x, eye_gaze_x < right_x), eye_gaze_y < bottom_y),eye_gaze_y > top_y) 
                                     
                                     # Make 0.1s timewindow eye-gaze data for relative time between -4s~4s (speech start time as 0s).
-                                    win_start_t = np.arange(-2, 2+window_size, window_size) 
+                                    win_start_t = np.arange(-4., 2.5+window_size, window_size) 
                                     win_flag = [np.logical_and(eye_gaze_relTime>win_start_t[i], eye_gaze_relTime<= win_start_t[i+1]) for i in range(len(win_start_t)-1)]
                                     win_gaze_portion[case].append([(eye_gaze_relTime[flag], correct_pred_flag[flag].astype(int)) if np.any(flag) else (np.array([np.nan]), np.array([np.nan])) for flag in win_flag])
                     
