@@ -70,6 +70,7 @@ def plot_graph(graph_name):
     
     cases = ['Case 1', 'Case 2', 'Case 3', 'Case 4'] # 'Xocc_Xdup','Xocc_dup','occ_Xdup', 'occ_dup'
     methods = ['speech','eye-gaze', 'speech_eye-gaze'] #{'speech':[],'eye-gaze': [], 'speech_eye-gaze':[]}
+    method_title = {'speech':'speech','eye-gaze':'eye-gaze', 'speech_eye-gaze': 'speech & eye-gaze'}
     objects = ['cup','orange', 'scissors']
     pred_acc = defaultdict(lambda: defaultdict(lambda: defaultdict(list))) 
     
@@ -109,75 +110,23 @@ def plot_graph(graph_name):
                                     speech_eye_gaze_result = 0                                                                            
                                 pred_acc[obj][case]['speech_eye-gaze'].append(speech_eye_gaze_result)
         
-        # # # Plot of each object                  
-        # titles = ['Cup', 'Orange', 'Scissors']     
-        # # for obj, title in zip(objects, titles):  
-        # obj = objects[2]
-        # title = titles[2]
-        # correct_data = []
-        # cases_data = []
-        # methods_data = []
-        # bar = None
-        # for i, method in enumerate(methods):                  
-        #     # method_acc = [np.mean(pred_acc[obj][case][method])*100 for case in cases]
-        #     dt = [pred_acc[obj][case][method] for case in cases]
-        #     correct_data.append(dt)
-        #     cases_data.append([[c]*len(dt[i])for i,c in enumerate(cases)])
-        #     methods_data.append([method]*len(sum(dt,[])))
-        #     # correct_data.append(method_acc)
-            
-        # #flatten
-        # correct_data = sum(sum(correct_data,[]),[])
-        # cases_data = sum(sum(cases_data,[]),[])
-        # methods_data = sum(methods_data,[])
-        # pred_acc_data = np.stack([cases_data, methods_data, np.array(correct_data)*100]).T   
-        # # data_cases = cases*
-        
-        # head = ['cases', 'methods', 'correct']
-        # pred_acc_data = pd.DataFrame(pred_acc_data, columns=head)
-        # pred_acc_data['correct'] = pred_acc_data.correct.astype(float)  
-
-        # g = sns.barplot(
-        #     data=pred_acc_data,#, kind="bar",
-        #     x="cases", y="correct", hue="methods"#,
-        #     , ci=None #height=8 , ci=None #"sd"  # palette=sns.color_palette(get_colors()) #alpha=.6,
-        # )
-                        
-        # bars = g.patches
-                    
-        # hatches = np.repeat([None, '..', '////'],4)
-        # # colors = np.repeat(get_colors().tolist(),4)
-        # colors = get_colors()
-        # dark_colors = darker_colors()
-        
-        # # for i, bar in enumerate(bars):
-        # #     bar.set_color(colors[i])
-        # i = 0
-        # for bar in bars:
-        #     print(i)
-        #     bar.set_color(colors[i])
-        #     bar.set_edgecolor('black') # dark_colors[i]''
-        #     bar.set_hatch(hatches[i])
-        #     i+=1        
-                        
-        # g.set(xlabel = "", ylabel = "Accuracy (%)", title=title)
-        # g.legend(bbox_to_anchor=(1.02, 0.55), loc='upper left', borderaxespad=0)
-        # plt.savefig('prediction_acc_'+obj+'.png',dpi=300,bbox_inches="tight")  
-            
-            
-        ## Plot average of all objects
+        # # Plot of each object                  
+        titles = ['Cup', 'Orange', 'Scissors']     
+        # for obj, title in zip(objects, titles):  
+        obj = objects[2]
+        title = titles[2]
         correct_data = []
         cases_data = []
         methods_data = []
-        for obj in objects:  
-            for i, method in enumerate(methods):                  
-                # method_acc = [np.mean(pred_acc[obj][case][method])*100 for case in cases]
-                dt = [pred_acc[obj][case][method] for case in cases]
-                correct_data.append(dt)
-                cases_data.append([[c]*len(dt[i])for i,c in enumerate(cases)])
-                methods_data.append([method]*len(sum(dt,[])))
-                # correct_data.append(method_acc)
-                
+        bar = None
+        for i, method in enumerate(methods):                  
+            # method_acc = [np.mean(pred_acc[obj][case][method])*100 for case in cases]
+            dt = [pred_acc[obj][case][method] for case in cases]
+            correct_data.append(dt)
+            cases_data.append([[c]*len(dt[i])for i,c in enumerate(cases)])
+            methods_data.append([method_title[method]]*len(sum(dt,[])))
+            # correct_data.append(method_acc)
+            
         #flatten
         correct_data = sum(sum(correct_data,[]),[])
         cases_data = sum(sum(cases_data,[]),[])
@@ -194,23 +143,75 @@ def plot_graph(graph_name):
             x="cases", y="correct", hue="methods"#,
             , ci=None #height=8 , ci=None #"sd"  # palette=sns.color_palette(get_colors()) #alpha=.6,
         )
-        
+                        
         bars = g.patches
                     
         hatches = np.repeat([None, '..', '////'],4)
+        # colors = np.repeat(get_colors().tolist(),4)
         colors = get_colors()
         dark_colors = darker_colors()
         
-        for i, bar in enumerate(bars):
+        # for i, bar in enumerate(bars):
+        #     bar.set_color(colors[i])
+        i = 0
+        for bar in bars:
+            print(i)
             bar.set_color(colors[i])
             bar.set_edgecolor('black') # dark_colors[i]''
             bar.set_hatch(hatches[i])
+            i+=1        
+                        
+        g.set(xlabel = "", ylabel = "Accuracy (%)", title=title)
+        g.legend(bbox_to_anchor=(1.02, 0.55), loc='upper left', borderaxespad=0)
+        plt.savefig('prediction_acc_'+obj+'.png',dpi=300,bbox_inches="tight")  
+            
+            
+        # ## Plot average of all objects
+        # correct_data = []
+        # cases_data = []
+        # methods_data = []
+        # for obj in objects:  
+        #     for i, method in enumerate(methods):                  
+        #         # method_acc = [np.mean(pred_acc[obj][case][method])*100 for case in cases]
+        #         dt = [pred_acc[obj][case][method] for case in cases]
+        #         correct_data.append(dt)
+        #         cases_data.append([[c]*len(dt[i])for i,c in enumerate(cases)])
+        #         methods_data.append([method_title[method]]*len(sum(dt,[])))
+        #         # correct_data.append(method_acc)
+                
+        # #flatten
+        # correct_data = sum(sum(correct_data,[]),[])
+        # cases_data = sum(sum(cases_data,[]),[])
+        # methods_data = sum(methods_data,[])
+        # pred_acc_data = np.stack([cases_data, methods_data, np.array(correct_data)*100]).T   
+        # # data_cases = cases*
+        
+        # head = ['cases', 'methods', 'correct']
+        # pred_acc_data = pd.DataFrame(pred_acc_data, columns=head)
+        # pred_acc_data['correct'] = pred_acc_data.correct.astype(float)  
+
+        # g = sns.barplot(
+        #     data=pred_acc_data,#, kind="bar",
+        #     x="cases", y="correct", hue="methods"#,
+        #     , ci=None #height=8 , ci=None #"sd"  # palette=sns.color_palette(get_colors()) #alpha=.6,
+        # )
+        
+        # bars = g.patches
+                    
+        # hatches = np.repeat([None, '..', '////'],4)
+        # colors = get_colors()
+        # dark_colors = darker_colors()
+        
+        # for i, bar in enumerate(bars):
+        #     bar.set_color(colors[i])
+        #     bar.set_edgecolor('black') # dark_colors[i]''
+        #     bar.set_hatch(hatches[i])
     
                         
-        g.set(xlabel = "", ylabel = "Accuracy (%)", title="All objects")
-        g.legend(bbox_to_anchor=(1.02, 0.55), loc='upper left', borderaxespad=0)
+        # g.set(xlabel = "", ylabel = "Accuracy (%)", title="All objects")
+        # g.legend(bbox_to_anchor=(1.02, 0.55), loc='upper left', borderaxespad=0)
     
-        plt.savefig('prediction_acc_all.png',dpi=300,bbox_inches="tight")  
+        # plt.savefig('prediction_acc_all.png',dpi=300,bbox_inches="tight")  
         
 
         
@@ -306,7 +307,6 @@ def plot_graph(graph_name):
 
     ### Graph2: target gaze portion vs speech start time plot
     elif graph_name == "target_gaze_portion":   
-        from palettable.colorbrewer.qualitative import Set2_7
      
         window_size = 0.1
         win_gaze_portion = {'Case 1':[], 'Case 2':[], 'Case 3':[], 'Case 4':[]} 
@@ -455,6 +455,6 @@ def plot_graph(graph_name):
         # plt.show()               
                                 
 set_style()
-graph_name = "target_gaze_portion" #"pred_acc" # "target_gaze_portion" # "nasa_tlx"
+graph_name = "nasa_tlx" #"pred_acc" # "target_gaze_portion" # "nasa_tlx"
 plot_graph(graph_name)
 
